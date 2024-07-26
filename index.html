@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Spotify Top Recs</title>
+        <script src="src/script.js" type="module"></script>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+
+      <section id="profile">
+      <h2>Logged in as <span id="displayName"></span></h2>
+      <span id="avatar"></span>
+      </section>
+      <p id="instructions"> </p>
+      <section id = "buttons">
+      <button id="shortBtn"></button>
+      <button id="medBtn"></button>
+      <button id="longBtn"></button>
+      <p id="type"> </p>
+        </section>
+      <section id ="topInfo">
+        
+        <h3 id="topArtists"></h3>
+        <ol>
+            <span id="artistlist"></span>
+        </ol>
+      
+        <h3 id="topTracks"></h3>
+        <ol>
+            <span id="tracklist"></span>
+        </ol>
+        <script>
+            function isNumberKey(evt) { //https://stackoverflow.com/questions/13952686/how-to-make-html-input-tag-only-accept-numerical-values
+                var charCode = (evt.which) ? evt.which : evt.keyCode
+                    if (charCode > 31 && (charCode < 48 || charCode > 57))
+                    return false;
+                return true;
+                }
+        </script>
+        <p id="popularityInstructions"></p>
+        <input id="popularity" type="number" min="0" max="100" placeholder="0-100" onkeypress="return isNumberKey(event)" />
+        <button id="submitBtn"></button>
+    </section>
+    <button id="returnBtn"></button>
+    <button id="playlistBtn"></button>
+    <section id = "recommendations">
+        <h3 id="recTitle"></h3>
+        <ol>
+            <span id = "recList"></span>
+        </ol>
+    </section>
+    </body>
+</html>
