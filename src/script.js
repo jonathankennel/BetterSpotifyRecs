@@ -2,6 +2,7 @@ const clientId = "0f090d6e10ab49fbbb525fb6c23c9fa4"; // from dashboard
 const params = new URLSearchParams(window.location.search);
 const code = params.get("code");
 var displayed = "";
+let trueuriString = "";
 
 if (!code) {
     redirectToAuthCodeFlow(clientId);
@@ -160,33 +161,23 @@ async function listRecommendations(token, trackSeeds, artistSeeds, profile) {
     document.getElementById('shortBtn').style.display = "none";
     document.getElementById('medBtn').style.display = "none";
     document.getElementById('longBtn').style.display = "none";
-    //const controller = new AbortController();
-    //const { signal } = controller;
-    //document.getElementById('playlistBtn').innerHTML = "";
-    //document.getElementById('playlistBtn').replaceWith(document.getElementById('playlistBtn').clone());
     const playlistButton = document.getElementById('playlistBtn');
-    //playlistButton.replaceWith(playlistButton.cloneNode());
-    //controller.abort();
-    //if (playlistButton.innerText == "Create Playlist") {
-        //playlistButton.removeEventListener('click', function(){handlePlaylist(token, profile, uriString)}, false);
-        //playlistButton.removeEventListener('click', function(){handlePlaylist(token, profile, uriString)}, true);
-        //playlistButton.removeEventListener('click', handlePlaylist(token, profile, uriString));
-        //playlistButton.removeEventListener('click', handlePlaylist, true);
-        //playlistButton.removeEventListener('click', function(){handlePlaylist});
-        //console.log("EVENT LISTENER REMOVED");
-    //}
+    trueuriString = uriString;
+    if (playlistButton.innerText != "Create Playlist") {
+        playlistButton.addEventListener('click', function(){handlePlaylist(token, profile, trueuriString)});
+    }
     playlistButton.innerText = "Create Playlist";
     playlistButton.style.display = "inline-block";
-    playlistButton.addEventListener('click', function(){handlePlaylist(token, profile, uriString)}, { once: true }, { signal });
+    //playlistButton.addEventListener('click', function(){handlePlaylist(token, profile, uriString)});
 }
 
 // surely one of the 4 methods to remove an event handler will work, right guys?
 // https://macarthur.me/posts/options-for-removing-event-listeners/
 // cloneNode() makes button disappear while other 3 options don't remove event handler
 
-//const handlePlaylistCallback = () => {
-//    handlePlaylist(token, profile, uriString)
-//}
+// cant test right now because exceeded rate limits but i think by only adding event handler once and using global variable trueuriString
+// that i update in listRecommendation() function it should work properly aka only create one playlist which is also the intended playlist
+
 
 async function handlePlaylist(token, profile, uriString) {
     const result = await fetch("https://api.spotify.com/v1/users/" + profile.id + "/playlists", { 
@@ -252,7 +243,6 @@ function listProfile(profile) {
         const profileImage = new Image(200, 200);
         profileImage.src = profile.images[0].url;
         document.getElementById("avatar").appendChild(profileImage);
-        //document.getElementById("imgUrl").innerText = profile.images[0].url;
     }
     writeInstructions();
     document.getElementById('popularity').style.display = "none";
