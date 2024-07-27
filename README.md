@@ -1,5 +1,6 @@
 # BetterSpotifyRecs
-Unique and improved Spotify recommendations based on selectable tracks/artists from your top tracks/artists and an optional desired popularity
+Unique and improved Spotify recommendations based on selectable tracks/artists from your top tracks/artists and an optional desired popularity. Allows recommendations to be exported directly to a new spotify playlist with the click of a button. 
+It's over for the daily mix, discover weekly, and daylist
 
 javascript based app using node.js and npm
 
