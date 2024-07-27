@@ -1,8 +1,12 @@
 const clientId = "0f090d6e10ab49fbbb525fb6c23c9fa4"; // from dashboard
 const params = new URLSearchParams(window.location.search);
 const code = params.get("code");
+
+// a few global variables
 var displayed = "";
 let trueuriString = "";
+let seedString = "";
+let truepopString ="";
 
 if (!code) {
     redirectToAuthCodeFlow(clientId);
@@ -29,7 +33,7 @@ export async function redirectToAuthCodeFlow(clientId) {
     params.append("client_id", clientId);
     params.append("response_type", "code");
     params.append("redirect_uri", "http://localhost:5173/callback");
-    params.append("scope", "user-read-private user-top-read user-read-email playlist-modify-public playlist-modify-private");
+    params.append("scope", "user-read-private user-top-read playlist-modify-public");
     params.append("code_challenge_method", "S256");
     params.append("code_challenge", challenge);
 
@@ -107,17 +111,17 @@ async function fetchRecommendations(token, trackString, artistString, popString)
         const recs = await result.json();
         return recs.tracks;
     }
-
-
 }
 
 async function listRecommendations(token, trackSeeds, artistSeeds, profile) {
     const popularity = document.getElementById('popularity').value;
+    truepopString = "";
     let popString = "";
     if (!isNaN(popularity)) {
         if (popularity != "") {
             if (popularity <= 100 && popularity >= 0) {
                 popString = "&target_popularity=" + popularity;
+                truepopString = popularity;
             }
         } 
     }
@@ -168,32 +172,44 @@ async function listRecommendations(token, trackSeeds, artistSeeds, profile) {
     }
     playlistButton.innerText = "Create Playlist";
     playlistButton.style.display = "inline-block";
-    //playlistButton.addEventListener('click', function(){handlePlaylist(token, profile, uriString)});
 }
 
-// surely one of the 4 methods to remove an event handler will work, right guys?
-// https://macarthur.me/posts/options-for-removing-event-listeners/
-// cloneNode() makes button disappear while other 3 options don't remove event handler
-
-// cant test right now because exceeded rate limits but i think by only adding event handler once and using global variable trueuriString
-// that i update in listRecommendation() function it should work properly aka only create one playlist which is also the intended playlist
-
-
 async function handlePlaylist(token, profile, uriString) {
-    const result = await fetch("https://api.spotify.com/v1/users/" + profile.id + "/playlists", { 
+    console.log(seedString);
+    if (truepopString == "") {
+        const result = await fetch("https://api.spotify.com/v1/users/" + profile.id + "/playlists", { 
+            method: "POST",
+            body: JSON.stringify({name: "BetterSpotifyRecs", public: true, 
+                description: "https://github.com/jonathankennel/BetterSpotifyRecs — track and/or artist seeds used for this playlist: " + seedString}),
+             headers: 
+            { 'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json' }
+        });
+        const playlist = await result.json();
+        const result2 = await fetch("https://api.spotify.com/v1/playlists/" + playlist.id + "/tracks?uris=" + uriString, { 
         method: "POST",
-        body: JSON.stringify({name: "BetterSpotifyRecs", public: true, description: "Created using (github link) :3"}),
          headers: 
         { 'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json' }
     });
-    const playlist = await result.json();
-    const result2 = await fetch("https://api.spotify.com/v1/playlists/" + playlist.id + "/tracks?uris=" + uriString, { 
-        method: "POST",
-         headers: 
-        { 'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json' }
-    });
+    }
+    else {
+        const result = await fetch("https://api.spotify.com/v1/users/" + profile.id + "/playlists", { 
+            method: "POST",
+            body: JSON.stringify({name: "BetterSpotifyRecs", public: true, 
+                description: "https://github.com/jonathankennel/BetterSpotifyRecs — track and/or artist seeds used for this playlist: " + seedString + " — with a desired popularity of " + truepopString}),
+             headers: 
+            { 'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json' }
+        });
+        const playlist = await result.json();
+        const result2 = await fetch("https://api.spotify.com/v1/playlists/" + playlist.id + "/tracks?uris=" + uriString, { 
+            method: "POST",
+             headers: 
+            { 'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json' }
+        });
+    }
 
 }
 
@@ -293,21 +309,20 @@ function handleReturn() {
 
 function displayType(type) {
     if (type == "short") {
-        document.getElementById('type').innerText = "Displaying listening history over the past 4 weeks";
+        document.getElementById('type').innerText = "Displaying listening history over approximately the past 4 weeks";
         displayed = "short";
     }
     else if (type == "med") {
-        document.getElementById('type').innerText = "Displaying listening history over the past 6 months";
+        document.getElementById('type').innerText = "Displaying listening history over approximately the past 6 months";
         displayed = "med";
     }
     else if (type =="long") {
-        document.getElementById('type').innerText = "Displaying listening history over the past several years";
+        document.getElementById('type').innerText = "Displaying listening history over approximately the past 1-2 years";
         displayed = "long";
     }
 }
 
 function clearLists() {
-    //document.getElementById("playlistBtn").removeEventListener('click', function(){handlePlaylist}, true);
     document.getElementById("artistlist").innerHTML = "";
     document.getElementById("tracklist").innerHTML = "";
     document.getElementById("type").innerHTML = "";
@@ -318,6 +333,7 @@ function clearLists() {
 function handleRecommendations(token, tracksShort, artistsShort, tracksMed, artistsMed, tracksLong, artistsLong, profile) {
     const trackSeeds = [];
     const artistSeeds = [];
+    seedString = "";
     if (displayed == "") {
         alert("Please click either Short Term, Medium Term, or Long Term and select items to generate recommendations");
     }
@@ -325,37 +341,46 @@ function handleRecommendations(token, tracksShort, artistsShort, tracksMed, arti
         artistsShort.forEach((item) => {
             if (document.getElementById(item.id).checked) {
                 artistSeeds.push(item);
+                seedString = seedString + item.name + ", ";
             }
         });
         tracksShort.forEach((item) => {
             if (document.getElementById(item.id).checked) {
                 trackSeeds.push(item);
+                seedString = seedString + item.name + ", ";
             }
         });
+        seedString = seedString.substring(0, seedString.length - 2);
     }
     else if (displayed == "med") {
         artistsMed.forEach((item) => {
             if (document.getElementById(item.id).checked) {
                 artistSeeds.push(item);
+                seedString = seedString + item.name + ", ";
             }
         });
         tracksMed.forEach((item) => {
             if (document.getElementById(item.id).checked) {
                 trackSeeds.push(item);
+                seedString = seedString + item.name + ", ";
             }
         });
+        seedString = seedString.substring(0, seedString.length - 2);
     }
     else if (displayed == "long") {
         artistsLong.forEach((item) => {
             if (document.getElementById(item.id).checked) {
                 artistSeeds.push(item);
+                seedString = seedString + item.name + ", ";
             }
         });
         tracksLong.forEach((item) => {
             if (document.getElementById(item.id).checked) {
                 trackSeeds.push(item);
+                seedString = seedString + item.name + ", ";
             }
         });
+        seedString = seedString.substring(0, seedString.length - 2);
     }
     else {
         alert("Unexpected Error while tallying seeds for recommendation. Please return to localhost and try again");
