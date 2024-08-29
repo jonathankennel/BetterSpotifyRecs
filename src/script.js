@@ -95,21 +95,51 @@ async function fetchRecommendations(token, trackString, artistString, popString)
             method: "GET", headers: { Authorization: `Bearer ${token}` }
         });
         const recs = await result.json();
-        return recs.tracks;
+        if (result.status == 429) {
+            alert("The app has temporarily exceeded rate limits. Please try again at another time");
+            return null;
+        }
+        else if (result.status == 200) {
+            return recs.tracks;
+        }
+        else {
+            alert("The app has run into an unexpected error while listing recommendations");
+            return null;
+        }
     }
     else if (artistString.length == 0) {
         const result = await fetch("https://api.spotify.com/v1/recommendations?limit=50&seed_tracks=" + trackString + popString, { 
             method: "GET", headers: { Authorization: `Bearer ${token}` }
         });
         const recs = await result.json();
-        return recs.tracks;
+        if (result.status == 429) {
+            alert("The app has temporarily exceeded rate limits. Please try again at another time");
+            return null;
+        }
+        else if (result.status == 200) {
+            return recs.tracks;
+        }
+        else {
+            alert("The app has run into an unexpected error while listing recommendations");
+            return null;
+        }
     }
     else {
         const result = await fetch("https://api.spotify.com/v1/recommendations?limit=50&seed_artists=" + artistString + "&seed_tracks=" + trackString + popString, { 
             method: "GET", headers: { Authorization: `Bearer ${token}` }
         });
         const recs = await result.json();
-        return recs.tracks;
+        if (result.status == 429) {
+            alert("The app has temporarily exceeded rate limits. Please try again at another time");
+            return null;
+        }
+        else if (result.status == 200) {
+            return recs.tracks;
+        }
+        else {
+            alert("The app has run into an unexpected error while listing recommendations");
+            return null;
+        }
     }
 }
 
@@ -117,6 +147,7 @@ async function listRecommendations(token, trackSeeds, artistSeeds, profile) {
     const popularity = document.getElementById('popularity').value;
     truepopString = "";
     let popString = "";
+    // 3 different checks because im deathly afraid of text boxes
     if (!isNaN(popularity)) {
         if (popularity != "") {
             if (popularity <= 100 && popularity >= 0) {
@@ -140,75 +171,100 @@ async function listRecommendations(token, trackSeeds, artistSeeds, profile) {
         trackString = trackString.substring(0, trackString.length - 3);
     }
     const recs = await fetchRecommendations(token, trackString, artistString, popString);
-    clearLists();
-    scroll(0,0);
-    document.getElementById("recTitle").innerText = "Recommended Tracks";
-    let list = document.getElementById("recList");
-    let uriString = "";
-    let uriStringTemp = "";
-    recs.forEach((item) => {
-        let li = document.createElement("li");
-        li.innerText = " — " + item.artists[0].name;
-        let a = document.createElement('a'),
-        linkText = document.createTextNode(item.name);
-        a.href = item.external_urls.spotify;
-        a.appendChild(linkText);
-        li.prepend(a);
-        list.appendChild(li);
-        uriStringTemp = item.uri;
-        uriStringTemp = uriStringTemp.substring(14, uriStringTemp.length)
-        uriStringTemp = "spotify%3Atrack%3A" + uriStringTemp + "%2C";
-        uriString = uriString + uriStringTemp;
-    });
-    uriString = uriString.substring(0, uriString.length - 3);
-    hideTopText();
-    document.getElementById('shortBtn').style.display = "none";
-    document.getElementById('medBtn').style.display = "none";
-    document.getElementById('longBtn').style.display = "none";
-    const playlistButton = document.getElementById('playlistBtn');
-    trueuriString = uriString;
-    if (playlistButton.innerText != "Create Playlist") {
-        playlistButton.addEventListener('click', function(){handlePlaylist(token, profile, trueuriString)});
+    if (recs != null) {
+        clearLists();
+        scroll(0,0);
+        document.getElementById("recTitle").innerText = "Recommended Tracks";
+        let list = document.getElementById("recList");
+        let uriString = "";
+        let uriStringTemp = "";
+        // putting all recommendations into a single var in api friendly format
+        recs.forEach((item) => {
+            let li = document.createElement("li");
+            li.innerText = " — " + item.artists[0].name;
+            let a = document.createElement('a'),
+            linkText = document.createTextNode(item.name);
+            a.href = item.external_urls.spotify;
+            a.appendChild(linkText);
+            li.prepend(a);
+            list.appendChild(li);
+            uriStringTemp = item.uri;
+            uriStringTemp = uriStringTemp.substring(14, uriStringTemp.length)
+            uriStringTemp = "spotify%3Atrack%3A" + uriStringTemp + "%2C";
+            uriString = uriString + uriStringTemp;
+        });
+        uriString = uriString.substring(0, uriString.length - 3);
+        hideTopText();
+        document.getElementById('shortBtn').style.display = "none";
+        document.getElementById('medBtn').style.display = "none";
+        document.getElementById('longBtn').style.display = "none";
+        const playlistButton = document.getElementById('playlistBtn');
+        trueuriString = uriString;
+        if (playlistButton.innerText != "Create Playlist") {
+            playlistButton.addEventListener('click', function(){handlePlaylist(token, profile, trueuriString)});
+        }
+        playlistButton.innerText = "Create Playlist";
+        playlistButton.style.display = "inline-block";
     }
-    playlistButton.innerText = "Create Playlist";
-    playlistButton.style.display = "inline-block";
 }
 
 async function handlePlaylist(token, profile, uriString) {
-    console.log(seedString);
+    //console.log(seedString);
+    // handles bodyString for api call so description of playlist can be modified based on whether or not popularity was used
+    let bodyString = ""
     if (truepopString == "") {
-        const result = await fetch("https://api.spotify.com/v1/users/" + profile.id + "/playlists", { 
-            method: "POST",
-            body: JSON.stringify({name: "BetterSpotifyRecs", public: true, 
-                description: "https://github.com/jonathankennel/BetterSpotifyRecs — track and/or artist seeds used for this playlist: " + seedString}),
-             headers: 
-            { 'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json' }
-        });
-        const playlist = await result.json();
-        const result2 = await fetch("https://api.spotify.com/v1/playlists/" + playlist.id + "/tracks?uris=" + uriString, { 
+        bodyString = JSON.stringify({name: "BetterSpotifyRecs", public: true, 
+            description: "track and/or artist seeds used for this playlist: " + seedString + " — https://github.com/jonathankennel/BetterSpotifyRecs"})
+    }
+    else {
+        bodyString = JSON.stringify({name: "BetterSpotifyRecs", public: true, 
+            description: "track and/or artist seeds used for this playlist: " + seedString + " — with a desired popularity of " + truepopString + " — https://github.com/jonathankennel/BetterSpotifyRecs — "})
+    }
+    const result = await fetch("https://api.spotify.com/v1/users/" + profile.id + "/playlists", { 
         method: "POST",
-         headers: 
+        body: bodyString,
+        headers: 
         { 'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json' }
     });
-    }
-    else {
-        const result = await fetch("https://api.spotify.com/v1/users/" + profile.id + "/playlists", { 
-            method: "POST",
-            body: JSON.stringify({name: "BetterSpotifyRecs", public: true, 
-                description: "https://github.com/jonathankennel/BetterSpotifyRecs — track and/or artist seeds used for this playlist: " + seedString + " — with a desired popularity of " + truepopString}),
-             headers: 
-            { 'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json' }
-        });
+    if (result.status == 201) {
         const playlist = await result.json();
         const result2 = await fetch("https://api.spotify.com/v1/playlists/" + playlist.id + "/tracks?uris=" + uriString, { 
-            method: "POST",
-             headers: 
-            { 'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json' }
-        });
+        method: "POST",
+        headers: 
+        { 'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json' }
+    });
+
+    // Showing confirmation that playlist is created and giving link
+    const playlistText = document.getElementById('createdPlaylist');
+    if (result2.status == 201) {
+        playlistText.innerText = "Playlist successfully created. Playlist is accessible at: ";
+        let a = document.createElement('a');
+        let linkText = document.createTextNode(playlist.external_urls.spotify);
+        a.href = playlist.external_urls.spotify;
+        a.appendChild(linkText);
+        playlistText.appendChild(a);
+        //alert("Playlist successfully created. Playlist is accessible at: " + playlist.external_urls.spotify);
+    }
+    else if (result2.status == 429) {
+        alert("The app has temporarily exceeded rate limits. Please try again at another time");
+    }
+    else {
+        playlistText.innerText = "Error when adding songs to playlist. Playlist is accessible at: ";
+        let a = document.createElement('a');
+        let linkText = document.createTextNode(playlist.external_urls.spotify);
+        a.href = playlist.external_urls.spotify;
+        a.appendChild(linkText);
+        playlistText.appendChild(a);
+        //alert("Error when adding songs to playlist. Link to playlist: " + playlist.external_urls.spotify)
+    }
+    }
+    if (result.status == 429) {
+        alert("The app has temporarily exceeded rate limits. Please try again at another time");
+    }
+    else {
+        playlistText = "Error when creating playlist! Please refresh the page and try again."
     }
 
 }
@@ -304,6 +360,7 @@ function handleReturn() {
     document.getElementById('returnBtn').style.display = "none";
     document.getElementById('playlistBtn').style.display = "none";
     document.getElementById("recTitle").innerHTML = "";
+    document.getElementById("createdPlaylist").innerHTML = "";
     writeInstructions();
 }
 
