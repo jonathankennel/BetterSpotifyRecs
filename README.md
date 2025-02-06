@@ -32,7 +32,7 @@ After extensive testing, there are no known bugs for this application (excluding
 
 [Artist only](https://open.spotify.com/playlist/2eWJ2qaAfaLesfscDmQJmk?si=af1adbf9420b4c09)
 
-[Artist + Popularity](https://open.spotify.com/playlist/6tejlgrZ6juxE5Be9XLGD1?si=13ac78c9934a4fb8&pt=156e7f3bdc221fe1d9ec362634f3db24)
+[Artist + Popularity](https://open.spotify.com/playlist/6tejlgrZ6juxE5Be9XLGD1?si=05b7aca7f3924150)
 
 [Artists + Track + Popularity](https://open.spotify.com/playlist/2aOuqJq1ul1T6ngowbsrOY?si=2cf34645bf2b4796)
 
