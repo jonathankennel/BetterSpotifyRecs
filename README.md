@@ -14,7 +14,7 @@ https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api
 
 
 ### Note to potential employers:
-I unfortunately did not make a demonstration video of my application in action, I have since been in contact with Spotify hoping to extend usage of this endpoint for this specific project, or even just extending it long enough to film a video showcasing all of the functionality. In the event that this takes a long time or never happens, I will describe the functionality of my project, as none of the code has changed.
+I unfortunately did not make a demonstration video of my application in action. I have since been in contact with Spotify hoping to extend usage of this endpoint for this specific project, or even just extending it long enough to film a video showcasing all of the functionality. In the event that this takes a long time or never happens, I will describe the functionality of my project, as none of the code has changed.
 
 ### Functionality:
 
