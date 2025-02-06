@@ -3,7 +3,7 @@ Unique and improved Spotify recommendations based on selectable tracks/artists f
 
 javascript based app using node.js and npm
 
-#IMPORTANT NOTE:
+# IMPORTANT NOTE:
 AS OF November 27, 2024, SPOTIFY HAS DEPRECATED THE "Get Recommendations" ENDPOINT, MAKING THIS APPLICATION MOSTLY UNUSABLE
 
 https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api
@@ -39,7 +39,7 @@ Artist + Popularity: https://open.spotify.com/playlist/6tejlgrZ6juxE5Be9XLGD1?si
 Artists + Track + Popularity: https://open.spotify.com/playlist/2aOuqJq1ul1T6ngowbsrOY?si=2cf34645bf2b4796
 
 
-INSTALLATION/USE GUIDE:
+# INSTALLATION/USE GUIDE:
 1. clone this repo
 2. open cmd in cloned folder
 3. run "npm install"
